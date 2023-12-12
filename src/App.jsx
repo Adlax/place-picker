@@ -1,42 +1,67 @@
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import Places from "./components/Places";
 import Modal from "./components/Modal";
 import DeleteConfirmation from "./components/DeleteConfirmation";
 import { AVAILABLE_PLACES } from "./data";
 import logoImg from "./assets/logo.png";
+import { sortPlacesByDistance } from "./loc";
+
+// refetch/read the local storage first (sync code):
+const storagePlacesIDs = JSON.parse(localStorage.getItem("pickedPlaces")) || [];
+const storagePlaces = storagePlacesIDs.map((storedId) => AVAILABLE_PLACES.find((place) => place.id === storedId));
 
 const App = () => {
-	const modal = useRef();
 	const selectedPlace = useRef();
-	const [pickedPlaces, setPickedPlaces] = useState([]);
+	const [openModal, setOpenModal] = useState(false);
+	const [pickedPlaces, setPickedPlaces] = useState(storagePlaces);
+	const [availablePlaces, setAvailablePlaces] = useState(AVAILABLE_PLACES);
+
+	// Declare get users loc (Async/SideEffect) and sort the places according to this location :
+	const getSortedPlaces = () => {
+		navigator.geolocation.getCurrentPosition((position) => {
+			const sortedPlaces = sortPlacesByDistance(AVAILABLE_PLACES, position.coords.latitude, position.coords.longitude);
+			setAvailablePlaces(sortedPlaces);
+		});
+	};
+
+	// handle the side effect/async just above :
+	useEffect(() => {
+		getSortedPlaces();
+	}, []);
 
 	const handleRemovePlaceStart = (id) => {
-		modal.current.open();
+		setOpenModal(true);
 		selectedPlace.current = id;
 	};
 
 	const handleRemovePlaceStop = () => {
-		modal.current.close();
+		setOpenModal(false);
 	};
 
 	const addPlace = (id) => {
 		setPickedPlaces((oldState) => {
 			if (oldState.some((place) => place.id === id)) {
-				return;
+				return [...oldState];
 			}
 			const place = AVAILABLE_PLACES.find((place) => place.id === id);
 			return [...oldState, place];
 		});
+		const storagePlacesIDs = JSON.parse(localStorage.getItem("pickedPlaces")) || [];
+		if (storagePlacesIDs.indexOf(id) === -1) {
+			localStorage.setItem("pickedPlaces", JSON.stringify([id, ...storagePlacesIDs]));
+		}
 	};
 
 	const removePlace = () => {
 		setPickedPlaces((oldState) => oldState.filter((place) => place.id !== selectedPlace.current));
-		modal.current.close();
+		setOpenModal(false);
+		const storagePlacesIDs = JSON.parse(localStorage.getItem("pickedPlaces")) || [];
+		localStorage.setItem("pickedPlaces", JSON.stringify(storagePlacesIDs.filter((id) => id !== selectedPlace.current)));
 	};
 
 	return (
 		<>
-			<Modal ref={modal}>
+			<Modal open={openModal} onClose={handleRemovePlaceStop}>
 				<DeleteConfirmation onCancel={handleRemovePlaceStop} onConfirm={removePlace} />
 			</Modal>
 			<header>
@@ -51,7 +76,7 @@ const App = () => {
 					onSelectPlace={handleRemovePlaceStart}
 					fallbackText={"Select the places you would like to visit below"}
 				/>
-				<Places title="Available places" places={AVAILABLE_PLACES} onSelectPlace={addPlace} />
+				<Places title="Available places" places={availablePlaces} onSelectPlace={addPlace} fallbackText={"Fetching data..."} />
 			</main>
 		</>
 	);
