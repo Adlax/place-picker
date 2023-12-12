@@ -1,26 +1,16 @@
 import React, { useEffect, useState } from "react";
+import ProgressBar from "./ProgressBar";
 
 const timeOut = 3000;
 
 const DeleteConfirmation = ({ onCancel, onConfirm }) => {
-	const [remainingTime, setRemainingTime] = useState(timeOut);
-
 	useEffect(() => {
-		const pid1 = setInterval(() => {
-			setRemainingTime((oldState) => oldState - 10);
-		}, 10);
-		return () => {
-			clearInterval(pid1);
-		};
-	}, []);
-
-	useEffect(() => {
-		const pid2 = setTimeout(() => {
+		const pid = setTimeout(() => {
 			onConfirm();
 		}, timeOut);
 		//cleanup fct (executed after function above, or at removal of component):
 		return () => {
-			clearTimeout(pid2);
+			clearTimeout(pid);
 		};
 	}, [onConfirm]);
 
@@ -36,7 +26,7 @@ const DeleteConfirmation = ({ onCancel, onConfirm }) => {
 					Yes
 				</button>
 			</div>
-			<progress value={remainingTime} max={timeOut} />
+			<ProgressBar timeOut={timeOut} />
 		</div>
 	);
 };

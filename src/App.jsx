@@ -53,24 +53,25 @@ const App = () => {
 	};
 
 	// re-render shield the function below :
-	// const removePlace = useCallback(function removePlace() {
-	// 	setPickedPlaces((oldState) => oldState.filter((place) => place.id !== selectedPlace.current));
-	// 	setOpenModal(false);
-	// 	const storagePlacesIDs = JSON.parse(localStorage.getItem("pickedPlaces")) || [];
-	// 	localStorage.setItem("pickedPlaces", JSON.stringify(storagePlacesIDs.filter((id) => id !== selectedPlace.current)));
-	// }, []);
-
-	const removePlace = () => {
+	const removePlace = useCallback(function removePlace() {
 		setPickedPlaces((oldState) => oldState.filter((place) => place.id !== selectedPlace.current));
 		setOpenModal(false);
 		const storagePlacesIDs = JSON.parse(localStorage.getItem("pickedPlaces")) || [];
 		localStorage.setItem("pickedPlaces", JSON.stringify(storagePlacesIDs.filter((id) => id !== selectedPlace.current)));
-	};
+	}, []);
+
+	// Not shielded :
+	// const removePlace = () => {
+	// 	setPickedPlaces((oldState) => oldState.filter((place) => place.id !== selectedPlace.current));
+	// 	setOpenModal(false);
+	// 	const storagePlacesIDs = JSON.parse(localStorage.getItem("pickedPlaces")) || [];
+	// 	localStorage.setItem("pickedPlaces", JSON.stringify(storagePlacesIDs.filter((id) => id !== selectedPlace.current)));
+	// };
 
 	return (
 		<>
 			<Modal open={openModal} onClose={handleRemovePlaceStop}>
-				<DeleteConfirmation onCancel={handleRemovePlaceStop} onConfirm={removePlace} />
+				{openModal && <DeleteConfirmation onCancel={handleRemovePlaceStop} onConfirm={removePlace} />}
 			</Modal>
 			<header>
 				<img src={logoImg} alt="globe" />
