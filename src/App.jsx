@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import Places from "./components/Places";
 import Modal from "./components/Modal";
 import DeleteConfirmation from "./components/DeleteConfirmation";
@@ -51,6 +51,14 @@ const App = () => {
 			localStorage.setItem("pickedPlaces", JSON.stringify([id, ...storagePlacesIDs]));
 		}
 	};
+
+	// re-render shield the function below :
+	// const removePlace = useCallback(function removePlace() {
+	// 	setPickedPlaces((oldState) => oldState.filter((place) => place.id !== selectedPlace.current));
+	// 	setOpenModal(false);
+	// 	const storagePlacesIDs = JSON.parse(localStorage.getItem("pickedPlaces")) || [];
+	// 	localStorage.setItem("pickedPlaces", JSON.stringify(storagePlacesIDs.filter((id) => id !== selectedPlace.current)));
+	// }, []);
 
 	const removePlace = () => {
 		setPickedPlaces((oldState) => oldState.filter((place) => place.id !== selectedPlace.current));
